@@ -1,68 +1,108 @@
 <template>
-  <div class="container">
-    <div>
-      <logo />
-      <h1 class="title">
-        nuxt-todo
-      </h1>
-      <h2 class="subtitle">
-        My astonishing Nuxt.js project
-      </h2>
-      <div class="links">
-        <a href="https://nuxtjs.org/" target="_blank" class="button--green">
-          Documentation
-        </a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          class="button--grey"
-        >
-          GitHub
-        </a>
-      </div>
-    </div>
-  </div>
+  <el-container>
+    <el-aside width="400px">
+      <el-form
+        ref="form"
+        :rules="rules"
+        :model="from"
+        label-width="120px"
+        @submit.native.prevent="handleAdd"
+      >
+        <el-form-item prop="input">
+          <el-input
+            v-model.trim="form.input"
+            placeholder="todoを入力する"
+            clearable
+          />
+        </el-form-item>
+      </el-form>
+    </el-aside>
+    <el-main>
+      <el-row>
+        <el-col :span="8">
+          <ul class="list">
+            <li v-for="(todo, index) in todoList" :key="index" class="todo">
+              <span class="title" :class="todo.isChecked && 'checked'">
+                {{ todo.title }}
+              </span>
+              <div class="icons">
+                <i class="el-icon-check" @click="handleCheck(index)"></i>
+                <i class="el-icon-delete" @click="handleDelete(index)"></i>
+              </div>
+            </li>
+          </ul>
+        </el-col>
+      </el-row>
+    </el-main>
+  </el-container>
 </template>
 
 <script>
-import Logo from '~/components/Logo.vue'
-
+import { mapActions, mapGetters } from 'vuex'
 export default {
-  components: {
-    Logo
+  data() {
+    return {
+      form: {
+        input: ''
+      },
+      rules: {
+        input: [
+          { required: true, message: '何か入力してください', trigger: 'change' }
+        ]
+      }
+    }
+  },
+  computed: {
+    ...mapGetters({
+      todoList: 'todo/todoList'
+    })
+  },
+  methods: {
+    ...mapActions({
+      add: 'todo/handleAdd',
+      check: 'todo/handleCheck',
+      remove: 'todo/handleRemove'
+    }),
+    handleAdd() {
+      if (this.form.input) {
+        this.add(this.form.input)
+        this.$refs.form.resetFields()
+      }
+    },
+    handleCheck(index) {
+      this.check(index)
+    },
+    handelDelete(index) {
+      this.remove(index)
+    }
   }
 }
 </script>
 
-<style>
-.container {
-  margin: 0 auto;
-  min-height: 100vh;
+<style scoped lang="scss">
+.el-aside {
+  padding: 20px 10px 20px 20px;
+}
+.list {
+  padding: 0;
+}
+.todo {
+  height: 60px;
+  list-style: none;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  justify-content: space-between;
+  .title {
+    &.checked {
+      text-decoration: line-through;
+    }
+  }
 }
-
-.title {
-  font-family: 'Quicksand', 'Source Sans Pro', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
-
-.links {
-  padding-top: 15px;
+.icons i {
+  padding-right: 10px;
+  transition: all 0.5s ease-in;
+  &:hover {
+    transform: scale(1.5);
+    color: #2cb696;
+  }
 }
 </style>
